@@ -1,0 +1,21 @@
+# Fast test profile: in-memory H2, schema from JPA entities, no Flyway, no Docker.
+# Testcontainers-based tests use their own datasource and keep Flyway enabled.
+spring:
+  datasource:
+    url: jdbc:h2:mem:agento;MODE=PostgreSQL;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+  flyway:
+    enabled: false
+
+agento:
+  agent:
+    base-url: http://localhost:9;# overridden per-test
+    timeout-ms: 2000

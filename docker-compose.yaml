@@ -1,0 +1,39 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: agento-postgres
+    environment:
+      POSTGRES_DB: agento
+      POSTGRES_USER: agento
+      POSTGRES_PASSWORD: agento
+    ports:
+      - "5432:5432"
+    volumes:
+      - agento_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U agento -d agento"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  agento-api:
+    build: .
+    container_name: agento-api
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/agento
+      SPRING_DATASOURCE_USERNAME: agento
+      SPRING_DATASOURCE_PASSWORD: agento
+      # agento-agent runs outside this compose file. Point at the host, or
+      # override with the address of your running agent service.
+      AGENTO_AGENT_BASE_URL: http://host.docker.internal:8081
+    ports:
+      - "8080:8080"
+    extra_hosts:
+      # Lets the container reach agento-agent running on the host (Linux).
+      - "host.docker.internal:host-gateway"
+
+volumes:
+  agento_pgdata:
